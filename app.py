@@ -1,8 +1,17 @@
 import streamlit as st
 import pandas as pd
+import random
 
 st.set_page_config(page_title="Monitoramento Solar", layout="wide")
-st.title("⚡ Monitoramento Solar com Baterias e Consumo da Casa")
+
+# ---------------------------
+# Título com imagem ao lado
+# ---------------------------
+col1, col2 = st.columns([0.07, 0.93])  # primeira coluna menor
+with col1:
+    st.image("ibagem.png", width=107)   # imagem pequena
+with col2:
+    st.title("⚡ Monitoramento Solar com Baterias e Consumo da Casa")
 
 # ---------------------------
 # Leitura fixa do Excel
@@ -38,7 +47,7 @@ daily_data['Variação Energia (kWh)'] = daily_data['PV(kWh)'] - daily_data['Loa
 # Pico de potência
 peak_load = df.groupby('Date')['Load(W)'].max().reset_index(name="Pico Potência (W)")
 
-# SOC inicial e final (agora como inteiro)
+# SOC inicial e final
 soc_first = df.groupby('Date')['SOC(%)'].first().reset_index(name="SOC Inicial (%)")
 soc_last = df.groupby('Date')['SOC(%)'].last().reset_index(name="SOC Final (%)")
 
@@ -50,11 +59,12 @@ daily_data = daily_data.merge(soc_last, on="Date")
 # ---------------------------
 # Função para card estilizado
 # ---------------------------
-def metric_card(label, value, unit="", color="#262730"):
+def metric_card(label, value, unit="", color="#262730", big=False):
+    font_size = "36px" if big else "28px"
     return f"""
     <div style="
         background-color:{color};
-        padding:20px;
+        padding:30px;
         border-radius:15px;
         text-align:center;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -63,7 +73,7 @@ def metric_card(label, value, unit="", color="#262730"):
         font-weight:bold;
         ">
         {label}<br>
-        <span style="font-size:28px;">{value} {unit}</span>
+        <span style="font-size:{font_size};">{value} {unit}</span>
     </div>
     """
 
@@ -72,8 +82,8 @@ def metric_card(label, value, unit="", color="#262730"):
 # ---------------------------
 st.subheader("📊 Indicadores de Hoje")
 
-# Mostrar apenas o último dia disponível
-row = daily_data.iloc[-1]  # pega o último dia
+# Último dia disponível
+row = daily_data.iloc[-1]
 
 col1, col2, col3 = st.columns(3)
 
@@ -89,13 +99,32 @@ with col2:
 with col3:
     st.markdown(metric_card("🔄 SOC Bateria", f"{int(row['SOC Inicial (%)'])}% → {int(row['SOC Final (%)'])}%", "", "#9b59b6"), unsafe_allow_html=True)
 
-st.markdown("---")
+# ---------------------------
+# Novo card - Consumo Atual
+# ---------------------------
+st.markdown("### ⚡ Consumo Instantâneo da Casa")
+
+# valor aleatório entre 100 e 700 W
+consumo_atual = random.randint(100, 700)
+
+st.markdown(metric_card("🏠 Consumo Atual", f"{consumo_atual}", "W", "#e67e22", big=True), unsafe_allow_html=True)
 
 # ---------------------------
-# Tabela resumida
+# Ajudante inteligente
 # ---------------------------
-st.subheader("📑 Resumo Completo")
-st.dataframe(
-    daily_data[['Date','PV(kWh)','Load(kWh)','Battery(kWh)','Grid(kWh)',
-                'Variação Energia (kWh)','Pico Potência (W)','SOC Inicial (%)','SOC Final (%)']]
-)
+st.markdown("### 🤖 Ajudante de Consumo")
+
+limite_alerta = 500  # limite em Watts para alerta
+
+if consumo_atual > limite_alerta:
+    st.error(f"🚨 Consumo atual está alto: {consumo_atual}W (acima de {limite_alerta}W).")
+    st.markdown("""
+    **Sugestões para reduzir o consumo:**
+    - Desligue aparelhos que não estão em uso.
+    - Prefira usar eletrodomésticos no horário de maior produção solar.
+    - Evite ligar chuveiro elétrico, ferro de passar ou micro-ondas simultaneamente.
+    - Se possível, troque lâmpadas por versões LED mais econômicas.
+    """)
+else:
+    st.success(f"✅ Consumo atual ({consumo_atual}W) está dentro do limite de {limite_alerta}W.")
+    st.markdown("Continue aproveitando bem a energia disponível! 🌞🔋")
