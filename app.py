@@ -117,14 +117,14 @@ st.markdown("### 🤖 Ajudante de Consumo")
 limite_alerta = 500  # limite em Watts para alerta
 
 if consumo_atual > limite_alerta:
-    st.error(f"🚨 Consumo atual está alto: {consumo_atual}W (acima de {limite_alerta}W).")
+    st.error(f"🚨 Consumo atual está alto: {consumo_atual}W")
     st.markdown("""
     **Sugestões para reduzir o consumo:**
+    - Utilize o assistente virtual para desligar luzes que não estão em uso
     - Desligue aparelhos que não estão em uso.
     - Prefira usar eletrodomésticos no horário de maior produção solar.
     - Evite ligar chuveiro elétrico, ferro de passar ou micro-ondas simultaneamente.
-    - Se possível, troque lâmpadas por versões LED mais econômicas.
     """)
 else:
-    st.success(f"✅ Consumo atual ({consumo_atual}W) está dentro do limite de {limite_alerta}W.")
+    st.success(f"✅ Consumo atual ({consumo_atual}W)")
     st.markdown("Continue aproveitando bem a energia disponível! 🌞🔋")
